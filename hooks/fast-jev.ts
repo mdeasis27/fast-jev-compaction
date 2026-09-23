@@ -9,7 +9,7 @@ import type {
 } from 'claude-code';
 
 import { compact, reductionRatio, resolveOptions } from '../src/compact.js';
-import { buildJevRequest, DEFAULT_MODEL, parseJevResponse } from '../src/request.js';
+import { buildJevRequest, parseJevResponse } from '../src/request.js';
 import type {
   CompactOptions,
   CompactResult,
@@ -19,10 +19,14 @@ import type {
   ToolUse,
 } from '../src/types.js';
 
+// fork: routed through OpenRouter's Decisions API instead of TypeSafe directly.
+export const OPENROUTER_DECISIONS_URL = 'https://openrouter.ai/api/alpha/decisions';
+
 const HOOK_DEFAULTS = {
-  compactAtPercent: 60,
+  compactAtPercent: 35,
   minReductionRatio: 0.25,
-  model: DEFAULT_MODEL,
+  model: '~typesafe/jev-latest',
+  baseUrl: OPENROUTER_DECISIONS_URL,
 };
 
 export type HookFetchInit = {
@@ -45,6 +49,7 @@ export type HookConfig = CompactOptions & {
   compactAtPercent: number;
   minReductionRatio: number;
   model: string;
+  baseUrl: string;
 };
 
 function optionNumber(options: PluginOptions, key: string, fallback: number): number {
@@ -79,6 +84,7 @@ export function resolveHookConfig(options: PluginOptions): HookConfig {
       HOOK_DEFAULTS.minReductionRatio,
     ),
     model: optionString(options, 'model') ?? HOOK_DEFAULTS.model,
+    baseUrl: optionString(options, 'baseUrl') ?? HOOK_DEFAULTS.baseUrl,
   };
   const apiKey = optionString(options, 'apiKey');
   if (apiKey) config.apiKey = apiKey;
@@ -88,10 +94,15 @@ export function resolveHookConfig(options: PluginOptions): HookConfig {
 }
 
 /** A `JevAsker` over the engine's `$.http.fetch`. */
-export function jevAsker(fetchFn: HookFetch, apiKey: string, model: string): JevAsker {
+export function jevAsker(
+  fetchFn: HookFetch,
+  apiKey: string,
+  model: string,
+  baseUrl?: string,
+): JevAsker {
   return {
     async ask(state, questions) {
-      const request = buildJevRequest({ apiKey, model }, state, questions);
+      const request = buildJevRequest({ apiKey, model, baseUrl }, state, questions);
       const response = await fetchFn(request.url, {
         method: request.method,
         headers: request.headers,
@@ -168,7 +179,7 @@ export async function compactSession(
   fetchFn: HookFetch,
 ): Promise<SessionCompaction> {
   if (!config.apiKey) throw new Error('TYPESAFE_API_KEY is not configured');
-  const result = await compact(messages, jevAsker(fetchFn, config.apiKey, config.model), config);
+  const result = await compact(messages, jevAsker(fetchFn, config.apiKey, config.model, config.baseUrl), config);
   return { result, messages: toSessionMessages(messages, result.messages) };
 }
 

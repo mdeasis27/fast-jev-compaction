@@ -1,5 +1,11 @@
 # fast-jev-compaction
 
+> **Fork note:** this fork routes Jev through OpenRouter's Decisions API
+> (`https://openrouter.ai/api/alpha/decisions`, model `~typesafe/jev-latest`)
+> and compacts at 35% by default. Put an OpenRouter key in the plugin's
+> `apiKey` option. Set the `baseUrl` option to
+> `https://api.typesafe.ai/v1/systemone` to go back to TypeSafe directly.
+
 Claude Code plugin that replaces the compaction summary with Jev decisions:
 every tool call and result is scored in one fast request, stale ones are
 dropped or truncated, everything kept stays verbatim. Also usable as an npm

@@ -6,8 +6,8 @@
   "userConfig": {
     "apiKey": {
       "type": "string",
-      "title": "TypeSafe API key",
-      "description": "TypeSafe API key. Leave unset to use TYPESAFE_API_KEY.",
+      "title": "OpenRouter API key",
+      "description": "OpenRouter API key. Leave unset to use TYPESAFE_API_KEY.",
       "sensitive": true
     },
     "keepThreshold": {
@@ -26,7 +26,7 @@
       "type": "number",
       "title": "Compaction percentage",
       "description": "Context percentage at which turn.complete requests compaction.",
-      "default": 60
+      "default": 35
     },
     "minReductionRatio": {
       "type": "number",
@@ -55,8 +55,14 @@
     "model": {
       "type": "string",
       "title": "Jev model",
-      "description": "TypeSafe Jev model name.",
-      "default": "jev-latest"
+      "description": "Jev model slug on OpenRouter.",
+      "default": "~typesafe/jev-latest"
+    },
+    "baseUrl": {
+      "type": "string",
+      "title": "Decisions endpoint",
+      "description": "Jev endpoint. Defaults to OpenRouter's Decisions API; use https://api.typesafe.ai/v1/systemone with a TypeSafe key.",
+      "default": "https://openrouter.ai/api/alpha/decisions"
     }
   }
 }
